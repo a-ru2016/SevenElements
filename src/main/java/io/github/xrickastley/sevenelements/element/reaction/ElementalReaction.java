@@ -66,8 +66,6 @@ public abstract class ElementalReaction {
 		this.reactionDisplayOrder = reactionDisplayOrder
 			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
-
-		SevenElementsRegistries.ELEMENTAL_REACTION.createEntry(this);
 	}
 
 	public static float getReactionDamage(Entity entity, double reactionMultiplier) {

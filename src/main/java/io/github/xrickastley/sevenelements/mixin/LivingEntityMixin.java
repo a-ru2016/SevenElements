@@ -7,6 +7,7 @@ import com.llamalad7.mixinextras.sugar.Share;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
 
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -213,14 +214,14 @@ public abstract class LivingEntityMixin
 		}
 	}
 
-	@ModifyConstant(
+	@Inject(
 		method = "damage",
-		constant = @Constant(intValue = 20, ordinal = 0)
+		at = @At("RETURN")
 	)
-	private int changeTimeUntilRegen(int original, @Local(argsOnly = true) DamageSource source) {
-		return source.isIn(SevenElementsDamageTypeTags.PREVENTS_COOLDOWN_TRIGGER)
-			? 10
-			: original;
+	private void changeTimeUntilRegen(DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+		if (cir.getReturnValue() && source.isIn(SevenElementsDamageTypeTags.PREVENTS_COOLDOWN_TRIGGER)) {
+			this.timeUntilRegen = 10;
+		}
 	}
 
 	@Unique

@@ -1,8 +1,8 @@
 package io.github.xrickastley.sevenelements.mixin;
 
-import com.llamalad7.mixinextras.expression.Definition;
-import com.llamalad7.mixinextras.expression.Expression;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
 
@@ -89,19 +89,20 @@ public abstract class PlayerEntityMixin
 		return finalAmount;
 	}
 
-	// why are there two separate knockbacks :sob:
-	@Definition(id = "k", local = @Local(type = float.class, ordinal = 5))
-	@Expression("k > 0.0")
-	@ModifyExpressionValue(
+	@WrapOperation(
 		method = "attack",
-		at = @At("MIXINEXTRAS:EXPRESSION")
+		at = @At(
+			value = "INVOKE",
+			target = "Lnet/minecraft/entity/LivingEntity;takeKnockback(DDD)V"
+		)
 	)
-	private boolean preventKnockbackIfCrystallize(boolean original, @Local(argsOnly = true) Entity entity) {
-		if (!(entity instanceof final LivingEntity livingEntity)) return original;
+	private void preventKnockbackIfCrystallize(LivingEntity instance, double strength, double x, double z, Operation<Void> original) {
+		final ElementComponent component = ElementComponent.KEY.get(instance);
 
-		final ElementComponent component = ElementComponent.KEY.get(livingEntity);
-
-		return original && !component.reducedCrystallizeShield();
+		if (component.reducedCrystallizeShield()) {
+			return;
+		}
+		original.call(instance, strength, x, z);
 	}
 
 	@ModifyArg(

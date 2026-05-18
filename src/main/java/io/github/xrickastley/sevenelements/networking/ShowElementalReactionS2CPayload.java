@@ -2,7 +2,7 @@ package io.github.xrickastley.sevenelements.networking;
 
 import io.github.xrickastley.sevenelements.SevenElements;
 import io.github.xrickastley.sevenelements.element.reaction.ElementalReaction;
-import io.github.xrickastley.sevenelements.registry.SevenElementsRegistries;
+import io.github.xrickastley.sevenelements.registry.SevenElementsRegistryKeys;
 
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
@@ -17,7 +17,7 @@ public record ShowElementalReactionS2CPayload(Vec3d pos, ElementalReaction react
 
 	public static final PacketCodec<RegistryByteBuf, ShowElementalReactionS2CPayload> CODEC = PacketCodec.tuple(
 		PacketCodecs.codec(Vec3d.CODEC), ShowElementalReactionS2CPayload::pos,
-		PacketCodecs.codec(SevenElementsRegistries.ELEMENTAL_REACTION.getCodec()), ShowElementalReactionS2CPayload::reaction,
+		PacketCodecs.registryValue(SevenElementsRegistryKeys.ELEMENTAL_REACTION), ShowElementalReactionS2CPayload::reaction,
 		ShowElementalReactionS2CPayload::new
 	);
 

@@ -43,24 +43,36 @@ public class InGameHudMixin {
 		throw new AssertionError();
 	}
 
+	@Shadow
+	private int getHeartRows(int heartCount) {
+		throw new AssertionError();
+	}
+
 	@Inject(
 		method = "renderStatusBars",
-		at = @At(
-			value = "INVOKE",
-			target = "Lnet/minecraft/client/gui/hud/InGameHud;renderArmor(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/entity/player/PlayerEntity;IIII)V",
-			shift = At.Shift.AFTER
-		)
+		at = @At("TAIL")
 	)
-	private void renderAppliedElements(DrawContext context, CallbackInfo ci, @Local PlayerEntity player, @Local(ordinal = 4) int y, @Local(ordinal = 2) int x, @Local(ordinal = 6) int p, @Local(ordinal = 7) int lines) {
+	private void renderAppliedElements(DrawContext context, CallbackInfo ci) {
+		PlayerEntity player = this.client.getCameraEntity() instanceof PlayerEntity ? (PlayerEntity) this.client.getCameraEntity() : null;
+		if (player == null) return;
+
 		this.client.getProfiler().swap("seven-elements:elements");
 
-		y -= (p - 1) * lines;
+		int width = this.client.getWindow().getScaledWidth();
+		int height = this.client.getWindow().getScaledHeight();
 
-		int offset = 1;
+		int x = width / 2 - 91;
+		int y = height - 39;
 
-		if (player.getArmor() > 0) offset++;
+		int maxHealth = net.minecraft.util.math.MathHelper.ceil(player.getMaxHealth());
+		int absorption = net.minecraft.util.math.MathHelper.ceil(player.getAbsorptionAmount());
+		int lines = this.getHeartRows(maxHealth + absorption);
 
-		y -= (10 * (offset));
+		y -= lines * 10;
+
+		if (player.getArmor() > 0) {
+			y -= 10;
+		}
 
 		final ElementComponent component = ElementComponent.KEY.get(player);
 
@@ -86,6 +98,7 @@ public class InGameHudMixin {
 			context.drawTexture(texture, x1, y, 9, 9, 0, 0, 9, 9, 9, 9);
 		}
 	}
+
 
 	@Inject(
 		method = "renderMiscOverlays",
