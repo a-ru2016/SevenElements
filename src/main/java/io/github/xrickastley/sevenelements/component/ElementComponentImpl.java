@@ -232,7 +232,13 @@ public final class ElementComponentImpl implements ElementComponent {
 
 	@Override
 	public List<ElementalReaction> applyFromDamageSource(ElementalDamageSource source) {
-		return addElementalApplication(source.getElementalApplication(), source.getIcdContext());
+		final List<ElementalReaction> reactions = new ArrayList<>(
+			addElementalApplication(source.getElementalApplication(), source.getIcdContext())
+		);
+		for (final ElementalApplication app : source.getAdditionalApplications()) {
+			reactions.addAll(addElementalApplication(app, source.getIcdContext()));
+		}
+		return reactions;
 	}
 
 	@Override

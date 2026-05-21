@@ -4,6 +4,9 @@ import org.jetbrains.annotations.Nullable;
 
 import io.github.xrickastley.sevenelements.interfaces.DamageSourceWrapper;
 
+import java.util.List;
+import java.util.ArrayList;
+
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -190,5 +193,15 @@ public final class ElementalDamageSource
 
 	public boolean shouldInfuse() {
 		return this.shouldInfuse;
+	}
+
+	private final List<ElementalApplication> additionalApplications = new ArrayList<>();
+
+	public void addAdditionalApplication(final ElementalApplication app) {
+		this.additionalApplications.add(app);
+	}
+
+	public List<ElementalApplication> getAdditionalApplications() {
+		return this.additionalApplications;
 	}
 }
