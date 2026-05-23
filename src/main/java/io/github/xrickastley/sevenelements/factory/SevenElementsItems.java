@@ -16,13 +16,14 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemGroups;
 import net.minecraft.item.Items;
+import io.github.xrickastley.sevenelements.item.InfusionTableItem;
 import net.minecraft.item.TallBlockItem;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 
 public class SevenElementsItems {
-	public static final Item INFUSION_TABLE = new TallBlockItem(
+	public static final Item INFUSION_TABLE = new InfusionTableItem(
 		SevenElementsBlocks.INFUSION_TABLE,
 		new Item.Settings()
 	);

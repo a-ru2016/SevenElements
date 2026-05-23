@@ -4,6 +4,8 @@ import java.util.List;
 
 import io.github.xrickastley.sevenelements.advancement.criterion.SevenElementsCriteria;
 import io.github.xrickastley.sevenelements.block.SevenElementsBlocks;
+import io.github.xrickastley.sevenelements.factory.SevenElementsItems;
+import net.minecraft.util.Hand;
 import io.github.xrickastley.sevenelements.component.ElementalInfusionComponent;
 import io.github.xrickastley.sevenelements.element.Element;
 import io.github.xrickastley.sevenelements.element.ElementalApplication.Type;
@@ -82,6 +84,10 @@ public final class ElementalInfusionScreenHandler extends ScreenHandler {
 
 	@Override
 	public boolean canUse(PlayerEntity player) {
+		if (player.getStackInHand(Hand.MAIN_HAND).isOf(SevenElementsItems.INFUSION_TABLE)
+			|| player.getStackInHand(Hand.OFF_HAND).isOf(SevenElementsItems.INFUSION_TABLE)) {
+			return true;
+		}
 		return ScreenHandler.canUse(context, player, SevenElementsBlocks.INFUSION_TABLE);
 	}
 
