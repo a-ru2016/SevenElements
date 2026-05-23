@@ -7,18 +7,6 @@ import io.github.xrickastley.sevenelements.interfaces.DamageSourceWrapper;
 import java.util.List;
 import java.util.ArrayList;
 
-import java.util.List;
-import java.util.ArrayList;
-
-import java.util.List;
-import java.util.ArrayList;
-
-import java.util.List;
-import java.util.ArrayList;
-
-import java.util.List;
-import java.util.ArrayList;
-
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
