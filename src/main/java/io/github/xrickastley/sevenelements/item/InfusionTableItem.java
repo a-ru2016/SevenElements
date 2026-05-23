@@ -1,4 +1,4 @@
-package io.github.xrickastley.sevenelements.item;
+"package io.github.xrickastley.sevenelements.item;
 
 import io.github.xrickastley.sevenelements.factory.SevenElementsGameRules;
 import io.github.xrickastley.sevenelements.screen.ElementalInfusionScreenHandler;
@@ -46,8 +46,5 @@ public class InfusionTableItem extends TallBlockItem {
 					);
 				}
 			}
-			return TypedActionResult.consume(itemStack);
-		}
-		return super.use(world, user, hand);
-	}
-}
+			return TypedActionResul
+<truncated 81 bytes>
