@@ -79,6 +79,10 @@ public abstract class PrioritizedLivingEntityMixin
 	private @Nullable Entity sevenelements$plannedAttacker;
 	@Unique
 	private @Nullable DamageSource sevenelements$plannedDamageSource;
+	@Unique
+	private int sevenelements$amplifyingReactionTimer = 0;
+	@Unique
+	private float sevenelements$amplifyingReactionMultiplier = 1.0f;
 
 	public PrioritizedLivingEntityMixin(final EntityType<? extends LivingEntity> entityType, final World world) {
 		super(entityType, world);
@@ -159,6 +163,13 @@ public abstract class PrioritizedLivingEntityMixin
 				Functions.composePredicate(RegistryEntry::value, ElementalStatusEffect.class::cast, ElementalStatusEffect::getElement, component::hasElementalApplication)
 			))
 			.forEach(this::removeStatusEffect);
+
+		if (this.sevenelements$amplifyingReactionTimer > 0) {
+			this.sevenelements$amplifyingReactionTimer--;
+			if (this.sevenelements$amplifyingReactionTimer <= 0) {
+				this.sevenelements$amplifyingReactionMultiplier = 1.0f;
+			}
+		}
 	}
 
 	@ModifyVariable(
@@ -231,6 +242,21 @@ public abstract class PrioritizedLivingEntityMixin
 		final ElementComponent component = ElementComponent.KEY.get(this);
 		this.sevenelements$reactions = new ArrayList<>(component.applyFromDamageSource(eds));
 
+		for (final ElementalReaction reaction : this.sevenelements$reactions) {
+			if (reaction instanceof AmplifyingElementalReaction ampReaction) {
+				float masteryMultiplier = 1.0f;
+				final Entity attacker = source.getAttacker();
+				if (attacker instanceof final LivingEntity livingAttacker) {
+					double totalAttack = livingAttacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+					double baseAttack = livingAttacker.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+					double weaponAttack = Math.max(0, totalAttack - baseAttack);
+					masteryMultiplier = 1.0f + (float) (weaponAttack * 0.05);
+				}
+				this.sevenelements$amplifyingReactionTimer = 60;
+				this.sevenelements$amplifyingReactionMultiplier = (float) ampReaction.getAmplifier() * masteryMultiplier;
+			}
+		}
+
 		final @Nullable ElementalReaction lastReaction = this.sevenelements$reactions.isEmpty()
 			? null
 			: this.sevenelements$reactions.get(this.sevenelements$reactions.size() - 1);
@@ -253,7 +279,16 @@ public abstract class PrioritizedLivingEntityMixin
 					.stream()
 					.filter(reaction -> reaction instanceof AdditiveElementalReaction)
 					.map(reaction -> ((AdditiveElementalReaction) reaction))
-					.reduce(0.0f, (acc, reaction) -> acc + (float) reaction.getDamageBonus(this.getWorld()), Float::sum),
+					.reduce(0.0f, (acc, reaction) -> {
+						double masteryMultiplier = 1.0;
+						if (source.getAttacker() instanceof final LivingEntity livingAttacker) {
+							double totalAttack = livingAttacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+							double baseAttack = livingAttacker.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+							double weaponAttack = Math.max(0, totalAttack - baseAttack);
+							masteryMultiplier = 1.0 + (weaponAttack * 0.15);
+						}
+						return acc + (float) (reaction.getDamageBonus(this.getWorld()) * masteryMultiplier);
+					}, Float::sum),
 				0.0f
 			)
 			: 0.0f;
@@ -271,16 +306,30 @@ public abstract class PrioritizedLivingEntityMixin
 		order = Integer.MAX_VALUE // Amplifying DMG Bonus is a Total DMG multiplier, should be applied as late as possible.
 	)
 	private float applyReactionAmplifiers(float amount, @Local(argsOnly = true) DamageSource source) {
-		double amplifier = this.sevenelements$reactions != null && !this.sevenelements$reactions.isEmpty()
-			? Math.max(
-				this.sevenelements$reactions
-					.stream()
-					.filter(reaction -> reaction instanceof AmplifyingElementalReaction)
-					.map(reaction -> ((AmplifyingElementalReaction) reaction))
-					.reduce(0.0, (acc, reaction) -> acc + reaction.getAmplifier(), Double::sum),
-				1.0
-			)
-			: 1.0;
+		double amplifier = 1.0;
+
+		if (this.sevenelements$reactions != null && !this.sevenelements$reactions.isEmpty()) {
+			double totalAmplifier = 0.0;
+			for (final ElementalReaction reaction : this.sevenelements$reactions) {
+				if (reaction instanceof AmplifyingElementalReaction ampReaction) {
+					double masteryMultiplier = 1.0;
+					if (source.getAttacker() instanceof final LivingEntity livingAttacker) {
+						double totalAttack = livingAttacker.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+						double baseAttack = livingAttacker.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+						double weaponAttack = Math.max(0, totalAttack - baseAttack);
+						masteryMultiplier = 1.0 + (weaponAttack * 0.05);
+					}
+					totalAmplifier += ampReaction.getAmplifier() * masteryMultiplier;
+				}
+			}
+			if (totalAmplifier > 0) {
+				amplifier = totalAmplifier;
+			}
+		}
+
+		if (amplifier == 1.0 && this.sevenelements$amplifyingReactionTimer > 0) {
+			amplifier = this.sevenelements$amplifyingReactionMultiplier;
+		}
 
 		return amount * (float) amplifier;
 	}

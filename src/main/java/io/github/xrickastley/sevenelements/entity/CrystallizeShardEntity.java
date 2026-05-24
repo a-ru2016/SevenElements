@@ -135,7 +135,16 @@ public final class CrystallizeShardEntity extends SevenElementsEntity {
 
 		final ElementComponent component = ElementComponent.KEY.get(target);
 
-		component.setCrystallizeShield(element, SevenElements.getLevelMultiplier(this));
+		double baseShield = SevenElements.getLevelMultiplier(this);
+		double masteryMultiplier = 1.0;
+		if (owner != null) {
+			double totalAttack = owner.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double baseAttack = owner.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double weaponAttack = Math.max(0, totalAttack - baseAttack);
+			masteryMultiplier = 1.0 + (weaponAttack * 0.15);
+		}
+
+		component.setCrystallizeShield(element, baseShield * masteryMultiplier);
 
 		this.getWorld()
 			.playSound(null, this.getBlockPos(), SevenElementsSoundEvents.CRYSTALLIZE_SHIELD, SoundCategory.PLAYERS, 1.0f, 1.0f);

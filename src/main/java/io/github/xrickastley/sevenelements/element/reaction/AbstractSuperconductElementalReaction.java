@@ -23,8 +23,17 @@ public abstract sealed class AbstractSuperconductElementalReaction
 
 	@Override
 	protected void onReaction(LivingEntity entity, ElementalApplication auraElement, ElementalApplication triggeringElement, double reducedGauge, @Nullable LivingEntity origin) {
+		// 元素熟知（武器攻撃力）補正の計算
+		float masteryMultiplier = 1.0f;
+		if (origin != null) {
+			double totalAttack = origin.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double baseAttack = origin.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double weaponAttack = Math.max(0, totalAttack - baseAttack);
+			masteryMultiplier = 1.0f + (float) (weaponAttack * 0.15);
+		}
+
 		for (final LivingEntity target : ElementalReaction.getEntitiesInAoE(entity, 3, t -> t != origin)) {
-			final float damage = ElementalReaction.getReactionDamage(entity, 1.5);
+			final float damage = ElementalReaction.getReactionDamage(entity, 1.5) * masteryMultiplier;
 			final ElementalDamageSource source = new ElementalDamageSource(
 				entity
 					.getDamageSources()

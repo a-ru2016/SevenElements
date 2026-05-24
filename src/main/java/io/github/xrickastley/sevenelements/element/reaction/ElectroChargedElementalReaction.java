@@ -80,8 +80,18 @@ public class ElectroChargedElementalReaction extends ElementalReaction {
 
 		final List<LivingEntity> targets = ElementalReaction.getEntitiesInAoE(entity, 2.5, predicate);
 
+		// 元素熟知（武器攻撃力）補正の計算
+		float masteryMultiplier = 1.0f;
+		if (origin != null) {
+			double totalAttack = origin.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double baseAttack = origin.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double weaponAttack = Math.max(0, totalAttack - baseAttack);
+			masteryMultiplier = 1.0f + (float) (weaponAttack * 0.15);
+		}
+
+		// 基本の感電ダメージの適用 (威力を 2.0 -> 1.0 に引き下げ)
 		for (final LivingEntity target : targets) {
-			final float damage = ElementalReaction.getReactionDamage(entity, 2.0);
+			final float damage = ElementalReaction.getReactionDamage(entity, 1.0) * masteryMultiplier;
 			final ElementalDamageSource source = new ElementalDamageSource(
 				entity
 					.getDamageSources()
@@ -95,6 +105,35 @@ public class ElectroChargedElementalReaction extends ElementalReaction {
 			ElementComponent.KEY
 				.get(target)
 				.resetElectroChargedCD();
+		}
+
+		// お互いをつなぐ雷で相互にダメージを発生しあう (威力を 1.0 -> 0.25 に引き下げ)
+		for (int i = 0; i < targets.size(); i++) {
+			final LivingEntity target1 = targets.get(i);
+			for (int j = i + 1; j < targets.size(); j++) {
+				final LivingEntity target2 = targets.get(j);
+
+				final float connectionDamage = ElementalReaction.getReactionDamage(entity, 0.25) * masteryMultiplier;
+
+				final ElementalDamageSource source1 = new ElementalDamageSource(
+					target1
+						.getDamageSources()
+						.create(SevenElementsDamageTypes.ELECTRO_CHARGED, target2, origin),
+					ElementalApplications.gaugeUnits(target1, Element.ELECTRO, 0),
+					InternalCooldownContext.ofNone(origin)
+				).shouldApplyDMGBonus(false);
+
+				final ElementalDamageSource source2 = new ElementalDamageSource(
+					target2
+						.getDamageSources()
+						.create(SevenElementsDamageTypes.ELECTRO_CHARGED, target1, origin),
+					ElementalApplications.gaugeUnits(target2, Element.ELECTRO, 0),
+					InternalCooldownContext.ofNone(origin)
+				).shouldApplyDMGBonus(false);
+
+				target1.damage(source1, connectionDamage);
+				target2.damage(source2, connectionDamage);
+			}
 		}
 
 		this.sendDisplayPacket(entity, targets);

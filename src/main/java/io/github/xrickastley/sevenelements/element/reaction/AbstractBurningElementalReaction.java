@@ -149,12 +149,32 @@ public abstract sealed class AbstractBurningElementalReaction
 			return;
 		}
 
+		// 足元に炎を置き続ける処理
+		final net.minecraft.world.World world = entity.getWorld();
+		final net.minecraft.util.math.BlockPos pos = entity.getBlockPos();
+		if (world.getBlockState(pos).isAir() && net.minecraft.block.Blocks.FIRE.getDefaultState().canPlaceAt(world, pos)) {
+			world.setBlockState(pos, net.minecraft.block.Blocks.FIRE.getDefaultState());
+		}
+
 		for (final LivingEntity target : ElementalReaction.getEntitiesInAoE(entity, 1, t -> !ElementComponent.KEY.get(t).isBurningOnCD())) {
-			final float damage = ElementalReaction.getReactionDamage(entity, 0.25);
+			final float baseDamage = ElementalReaction.getReactionDamage(entity, 0.25f);
+			
+			// 元素熟知（武器攻撃力）補正の計算
+			float masteryMultiplier = 1.0f;
+			final LivingEntity origin = component.getBurningOrigin();
+			if (origin != null) {
+				double totalAttack = origin.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+				double baseAttack = origin.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+				double weaponAttack = Math.max(0, totalAttack - baseAttack);
+				masteryMultiplier = 1.0f + (float) (weaponAttack * 0.15);
+			}
+
+			final float damage = baseDamage * masteryMultiplier;
+
 			final ElementalDamageSource source = new ElementalDamageSource(
 				entity
 					.getDamageSources()
-					.create(SevenElementsDamageTypes.BURNING, entity, component.getBurningOrigin()),
+					.create(SevenElementsDamageTypes.BURNING, entity, origin),
 				target == entity
 					? ElementalApplications.gaugeUnits(target, Element.PYRO, 0)
 					: ElementalApplications.gaugeUnits(target, Element.PYRO, 1),

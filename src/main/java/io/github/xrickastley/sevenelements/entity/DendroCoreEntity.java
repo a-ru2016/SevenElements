@@ -206,8 +206,16 @@ public final class DendroCoreEntity extends SevenElementsEntity {
 
 			if (this.curTicksInHitbox < DendroCoreEntity.SPRAWLING_SHOT_DELAY) return;
 
+			double masteryMultiplier = 1.0;
+			final LivingEntity recentOwner = this.getRecentOwner();
+			if (recentOwner != null) {
+				double totalAttack = recentOwner.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+				double baseAttack = recentOwner.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+				double weaponAttack = Math.max(0, totalAttack - baseAttack);
+				masteryMultiplier = 1.0 + (weaponAttack * 0.15);
+			}
 			for (final Entity target2 : ElementalReaction.getEntitiesInAoE(target, 1.0, e -> !owners.contains(e.getUuid())))
-				target2.damage(this.createDamageSource(target), ElementalReaction.getReactionDamage(this, 3.0));
+				target2.damage(this.createDamageSource(target), (float) (ElementalReaction.getReactionDamage(this, 3.0) * masteryMultiplier));
 
 			this.remove(RemovalReason.KILLED);
 
@@ -287,12 +295,20 @@ public final class DendroCoreEntity extends SevenElementsEntity {
 
 		final @Nullable LivingEntity recentOwner = this.getRecentOwner();
 
+		double masteryMultiplier = 1.0;
+		if (recentOwner != null) {
+			double totalAttack = recentOwner.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double baseAttack = recentOwner.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double weaponAttack = Math.max(0, totalAttack - baseAttack);
+			masteryMultiplier = 1.0 + (weaponAttack * 0.15);
+		}
+
 		for (final LivingEntity target : ElementalReaction.getEntitiesInAoE(this, 5.0)) {
 			if (target instanceof DendroCoreEntity) continue;
 
 			final ElementalDamageSource source = this.createDamageSource(target, recentOwner);
 
-			float damage = ElementalReaction.getReactionDamage(this, reactionMultiplier);
+			float damage = (float) (ElementalReaction.getReactionDamage(this, reactionMultiplier) * masteryMultiplier);
 
 			if (this.owners.contains(target.getUuid())) damage *= 0.02f;
 

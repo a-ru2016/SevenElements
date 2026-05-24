@@ -101,7 +101,18 @@ public class OverloadedElementalReaction extends ElementalReaction {
 			InternalCooldownContext.ofNone(entity)
 		).shouldApplyDMGBonus(false);
 
-		float amount = ElementalReaction.getReactionDamage(entity, 2.75);
+		float baseDamage = ElementalReaction.getReactionDamage(entity, 2.75);
+
+		// 元素熟知（武器攻撃力）補正の計算
+		float masteryMultiplier = 1.0f;
+		if (origin instanceof final LivingEntity livingOrigin) {
+			double totalAttack = livingOrigin.getAttributeValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double baseAttack = livingOrigin.getAttributeBaseValue(net.minecraft.entity.attribute.EntityAttributes.GENERIC_ATTACK_DAMAGE);
+			double weaponAttack = Math.max(0, totalAttack - baseAttack);
+			masteryMultiplier = 1.0f + (float) (weaponAttack * 0.15);
+		}
+
+		float amount = baseDamage * masteryMultiplier;
 
 		if (entity == origin) amount = 0;
 
