@@ -19,7 +19,8 @@ import io.github.xrickastley.sevenelements.util.ClassInstanceUtil;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.CraftingResultInventory;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
@@ -33,7 +34,7 @@ public final class ElementalInfusionScreenHandler extends ScreenHandler {
 	private static final int REQUIRED_LEVEL = 10;
 
 	private final ScreenHandlerContext context;
-	private final CraftingResultInventory output = new CraftingResultInventory();
+	private final Inventory output = new SimpleInventory(1);
 	private final Random RANDOM = Random.create();
 
 	public ElementalInfusionScreenHandler(int syncId, PlayerInventory playerInventory) {
@@ -141,6 +142,7 @@ public final class ElementalInfusionScreenHandler extends ScreenHandler {
 
 	@Override
 	public void onClosed(PlayerEntity player) {
+		super.onClosed(player);
 		this.dropInventory(player, this.output);
 	}
 }

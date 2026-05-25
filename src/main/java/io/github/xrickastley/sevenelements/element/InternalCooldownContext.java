@@ -229,5 +229,10 @@ public final class InternalCooldownContext {
 			return Objects.equals(this.type, builder.type)
 				&& Objects.equals(this.tag, builder.tag);
 		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.type, this.tag);
+		}
 	}
 }

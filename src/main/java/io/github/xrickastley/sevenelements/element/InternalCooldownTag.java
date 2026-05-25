@@ -104,6 +104,11 @@ public final class InternalCooldownTag {
 		return this.tag.equals(tag.tag);
 	}
 
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(this.tag);
+	}
+
 	public Text getText() {
 		return this.getText(Formatting.WHITE);
 	}

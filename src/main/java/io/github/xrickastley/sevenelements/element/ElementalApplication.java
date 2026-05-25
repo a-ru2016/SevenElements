@@ -250,7 +250,9 @@ public abstract sealed class ElementalApplication permits DurationElementalAppli
 		private double duration;
 
 		Builder() {
+			this.type = Type.GAUGE_UNIT;
 			this.isAura = true;
+			this.duration = -1.0;
 		}
 
 		public static Text getText(Builder builder) {
@@ -353,6 +355,11 @@ public abstract sealed class ElementalApplication permits DurationElementalAppli
 				&& this.isAura == builder.isAura
 				&& this.gaugeUnits == builder.gaugeUnits
 				&& this.duration == builder.duration;
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.type, this.element, this.isAura, this.gaugeUnits, this.duration);
 		}
 	}
 }

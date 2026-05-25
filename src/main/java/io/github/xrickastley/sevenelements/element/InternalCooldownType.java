@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import io.github.xrickastley.sevenelements.SevenElements;
 import io.github.xrickastley.sevenelements.registry.SevenElementsRegistryKeys;
@@ -137,6 +138,11 @@ public final class InternalCooldownType {
 		return this.id.equals(type.id)
 			&& this.gaugeSequence == type.gaugeSequence
 			&& this.resetInterval == type.resetInterval;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.id, this.gaugeSequence, this.resetInterval);
 	}
 
 	public MutableText getText() {

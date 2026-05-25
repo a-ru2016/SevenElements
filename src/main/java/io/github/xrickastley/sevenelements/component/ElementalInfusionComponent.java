@@ -119,4 +119,9 @@ public record ElementalInfusionComponent(@Nullable ElementalApplication.Builder 
 		return Objects.equals(this.elementalInfusion, component.elementalInfusion)
 			&& Objects.equals(this.internalCooldown, component.internalCooldown);
 	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.elementalInfusion, this.internalCooldown);
+	}
 }
